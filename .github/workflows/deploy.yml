@@ -14,17 +14,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Étape 2 : Installer les dépendances
+      # Étape 2 : Installer Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'  # Assure-toi d'utiliser une version compatible de Node.js
+          node-version: '16'
 
+      # Étape 3 : Installer les dépendances
       - name: Install dependencies
         run: |
-          npm install # Cela installera toutes les dépendances listées dans package.json
+          npm install
 
-      # Étape 3 : Déployer sur IPFS
+      # Étape 4 : Déployer sur IPFS
       - name: Deploy to IPFS
         env:
           PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
