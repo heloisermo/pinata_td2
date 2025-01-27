@@ -1,61 +1,24 @@
-name: Deploy to IPFS
+name: Deploy on Pinata
 
 on:
   push:
     branches:
-      - master  # Remplacer "main" par la branche que tu utilises pour déployer
+      - master
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # Utilisation de l'environnement Ubuntu sur GitHub Actions
+    runs-on: ubuntu-latest
 
     steps:
-      # Étape 1 : Vérifier le code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      # Étape 2 : Installer Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'  # Choisis la version de Node.js que tu souhaites utiliser
-
-      # Étape 3 : Installer les dépendances
-      - name: Install dependencies
-        run: |
-          npm install
-
-      # Étape 4 : Créer un fichier zip de ton site pour le déployer
-      - name: Create zip of the site
-        run: |
-          zip -r site.zip .
-
-      # Étape 5 : Déployer sur IPFS via Pinata
       - name: Deploy to Pinata
-        env:
-          PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
-          PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
-        run: |
-          # Utilise Node.js pour exécuter le code et uploader le fichier zip sur IPFS
-          node -e "
-          const pinataSDK = require('@pinata/sdk');  // Importation de Pinata SDK
-          const fs = require('fs');  // Importation de fs pour lire des fichiers
-          const pinata = pinataSDK({  // Initialisation du client Pinata
-            apiKey: process.env.PINATA_API_KEY,
-            apiSecret: process.env.PINATA_API_SECRET
-          });
-          
-          // Lecture du fichier zip que nous avons créé
-          const readableStreamForFile = fs.createReadStream('./site.zip');
-          
-          // Téléchargement du fichier zip sur Pinata (IPFS)
-          pinata.pinFileToIPFS(readableStreamForFile, {
-            pinataMetadata: { name: 'MyWebsite' }  // Tu peux personnaliser le nom ici
-          })
-          .then((result) => {
-            console.log('Website deployed to IPFS:', result);  // Si succès, affichage du résultat
-          })
-          .catch((err) => {
-            console.error('Error deploying site:', err);  // En cas d'erreur, affichage de l'erreur
-          });
-          "
+        uses: anantaramdas/ipfs-pinata-deploy-action@v1.6.4
+        with:
+          pin-name: 'Tic Tac Toe'
+          path: './src'
+          pinata-api-key: ${{ secrets.PINATA_API_KEY }}
+          pinata-secret-api-key: ${{ secrets.PINATA_SECRET_API_KEY }}
+          verbose: true
+          remove-old: true
