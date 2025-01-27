@@ -40,7 +40,7 @@ jobs:
           node -e "
           const pinataSDK = require('@pinata/sdk');  // Importation de Pinata SDK
           const fs = require('fs');  // Importation de fs pour lire des fichiers
-          const pinata = new pinataSDK.PinataClient({  // Initialisation du client Pinata
+          const pinata = pinataSDK({  // Initialisation du client Pinata
             apiKey: process.env.PINATA_API_KEY,
             apiSecret: process.env.PINATA_API_SECRET
           });
