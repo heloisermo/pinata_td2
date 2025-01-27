@@ -1,0 +1,37 @@
+name: Deploy to IPFS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Pinata CLI
+      run: npm install -g @pinata/sdk
+
+    - name: Deploy to IPFS
+      env:
+        PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
+        PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
+      run: |
+        zip -r site.zip .
+        node -e "
+        const pinataSDK = require('@pinata/sdk');
+        const fs = require('fs');
+        const pinata = pinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_API_SECRET);
+        const readableStreamForFile = fs.createReadStream('./site.zip');
+        pinata.pinFileToIPFS(readableStreamForFile, {
+          pinataMetadata: { name: 'MyWebsite' }
+        }).then((result) => {
+          console.log('Website deployed to IPFS:', result);
+        }).catch((err) => {
+          console.error('Error deploying site:', err);
+        });
+        "
