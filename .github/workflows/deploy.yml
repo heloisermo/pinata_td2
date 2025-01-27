@@ -3,11 +3,11 @@ name: Deploy to IPFS
 on:
   push:
     branches:
-      - master
+      - master  # Remplacer "main" par la branche que tu utilises pour déployer
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Utilisation de l'environnement Ubuntu sur GitHub Actions
 
     steps:
       # Étape 1 : Vérifier le code
@@ -18,32 +18,44 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '16'  # Choisis la version de Node.js que tu souhaites utiliser
 
       # Étape 3 : Installer les dépendances
       - name: Install dependencies
         run: |
           npm install
 
-      # Étape 4 : Déployer sur IPFS
-      - name: Deploy to IPFS
+      # Étape 4 : Créer un fichier zip de ton site pour le déployer
+      - name: Create zip of the site
+        run: |
+          zip -r site.zip .
+
+      # Étape 5 : Déployer sur IPFS via Pinata
+      - name: Deploy to Pinata
         env:
           PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
           PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
         run: |
-          # Crée un dossier zip à partir du contenu
-          zip -r site.zip .
-          # Déploie sur Pinata
+          # Utilise Node.js pour exécuter le code et uploader le fichier zip sur IPFS
           node -e "
-          const pinataSDK = require('@pinata/sdk');
-          const fs = require('fs');
-          const pinata = pinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_API_SECRET);
+          const pinataSDK = require('@pinata/sdk');  // Importation de Pinata SDK
+          const fs = require('fs');  // Importation de fs pour lire des fichiers
+          const pinata = new pinataSDK.PinataClient({  // Initialisation du client Pinata
+            apiKey: process.env.PINATA_API_KEY,
+            apiSecret: process.env.PINATA_API_SECRET
+          });
+          
+          // Lecture du fichier zip que nous avons créé
           const readableStreamForFile = fs.createReadStream('./site.zip');
+          
+          // Téléchargement du fichier zip sur Pinata (IPFS)
           pinata.pinFileToIPFS(readableStreamForFile, {
-            pinataMetadata: { name: 'MyWebsite' }
-          }).then((result) => {
-            console.log('Website deployed to IPFS:', result);
-          }).catch((err) => {
-            console.error('Error deploying site:', err);
+            pinataMetadata: { name: 'MyWebsite' }  // Tu peux personnaliser le nom ici
+          })
+          .then((result) => {
+            console.log('Website deployed to IPFS:', result);  // Si succès, affichage du résultat
+          })
+          .catch((err) => {
+            console.error('Error deploying site:', err);  // En cas d'erreur, affichage de l'erreur
           });
           "
